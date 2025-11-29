@@ -50,10 +50,10 @@ class Node{
 }
 
 // Implementación de la clase LinkedList
-//
+
 class LinkedList{
     constructor(...values){
-        this.head = null = this.tail = null;
+        this.head = this.tail = null;
         this.length = 0;
 
         if(values.length > 0) {
@@ -104,27 +104,34 @@ class LinkedList{
     shift(){
         if(!this.head) return;
 
-        let temp = this.head;
-        if(this.length === 1){
-            this.head = null;
-            this.tail = null;
-        }else{
-            this.head = temp.next;
-            temp.next = null;
+        if (this.length === 1) {
+            const firstNode = this.head;
+            this.head = this.tail = null;
+
+            this.length = 0;
+            return firstNode;
         }
+
+        let firstNode = this.head;
+        this.head = this.head.next;
+        firstNode.next = null;
+        
         this.length--;
-        return temp;
+        return firstNode;
     }
 
     unshift(value){
         const node = new Node(value);
+
         if(!this.head){
-            this.head = node;
-            this.tail = node;
-        }else{
-            node.next = this.head;
-            this.head = node;
+            this.head = this.tail = node;
+            this.length++;
+
+            return this;
         }
+        
+        node.next = this.head;
+        this.head = node;
         this.length++;
         return this;
     }
@@ -150,39 +157,36 @@ class LinkedList{
     }
 
     insertAt(index, value){
+        if(index < 0 || index > this.length) return;
+
         if(index === this.length) return this.push(value);
         if(index === 0) return this.unshift(value);
 
+        const target = new Node(value);
+
         let preTarget = this.get(index-1);
-        if(preTarget){
-            let target = preTarget.next;
-
-            const node = new Node(value);
-
-            preTarget.next = node;
-            node.next = target;
-
-            this.length++;
-            return true;
-        }
-        return false;
+        let nextTarget = preTarget.next;
+        
+        preTarget.next = target;
+        target.next = nextTarget;
+        
+        this.length++;
+        return this;
     }
 
     removeAt(index){
+        if(index < 0 || index >= this.length) return;
+
         if(index === this.length-1) return this.pop();
         if(index === 0) return this.shift();
 
         let preTarget = this.get(index-1);
-        if(preTarget){
-            let target = preTarget.next;
+        let target = preTarget.next;
+        preTarget.next = target.next;
 
-            preTarget.next = target.next;
-            target.next = null;
-
-            this.length--;
-            return target;
-        }
-        return false;
+        target.next = null;
+        this.length--;
+        return target;
     }
 
     reverse(){
@@ -206,6 +210,9 @@ class LinkedList{
     }
 
     middleNode(){
+        if(!this.head) return;
+        if(this.length === 1) return this.head;
+
         let slow = this.head;
         let fast = this.head;
 
@@ -217,6 +224,8 @@ class LinkedList{
     }
 
     hasLoop(){
+        if(!this.head) return false;
+
         let slow = this.head;
         let fast = this.head;
 
@@ -249,14 +258,17 @@ class LinkedList{
     }
 
     findDuplicatesLoop(){
+        if(!this.head) return;
        let current = this.head;
 
        while(current && current.next){
-           let runner = current;
+           let runner = current; // ambos punteros al primer nodo
 
-           while(runner.next){
-               if(current.value === runner.next.value) {
-                   runner.next = runner.next.next;
+           while(runner.next){ // se ejecuta mientras exista un nodo siguiente
+               if(current.value === runner.next.value) { // si el valor actuarl es igual al siguiente
+                   runner.next = runner.next.next; // runner aquí sigue apuntando a head, solo cambia next para eliminar el nodo repetido
+                    // y como se eliminó un nodo, runner no se mueve, y seguimos con el while mientras hayan nodos para comparar
+                    // entonces no veo como esto segun rompe la logica o se salta elementos
                    this.length--;
                }else{
                    runner = runner.next;
@@ -264,9 +276,12 @@ class LinkedList{
            }
            current = current.next;
        }
+        return this;
     }
 
     binary(){
+        if(!this.head) return;
+
         let current = this.head;
         let total = 0;
         while(current){
@@ -280,6 +295,8 @@ class LinkedList{
     }
 
     partitionList(value){
+        if(!this.head) return;
+
         let menor = new Node(0);
         let mayor = new Node(0);
         let menorFin = menor;
@@ -303,17 +320,18 @@ class LinkedList{
         return this;
     }
 
-    reverseBetween(m, n){
-        if(!(n > m && n <= this.length-1  && n > 0 && m >= 0 && m < this.length-1)) return;
+    reverseBetween(start, end){
+        if(start > end) return;
+        if(start < 0 || end >= this.length) return;
 
-        let times = n - m;
+        let times = end - start;
         let preHead = new Node(0);
         preHead.next = this.head;
 
         let pre = preHead;
         let current = this.head;
 
-        for(let i = 0; i < m; i++){
+        for(let i = 0; i < start; i++){
             pre = pre.next;
             current = current.next;
         }
