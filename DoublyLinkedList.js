@@ -1,5 +1,39 @@
-// la diferencia esencial entre una linked list y una doubly es que la doubly tiene un puntero a pre, es decir,
-// un puntero al nodo previo
+/**
+ * Doubly Linked List - Complejidad y características clave
+ * 
+ * Diferencia esencial con Singly Linked List:
+ *  - Cada nodo tiene un puntero 'prev' al nodo anterior, permitiendo navegación bidireccional.
+ *  - Esto hace O(1) operaciones como pop() y shift() (sin recorrer la lista).
+ * 
+ * Ventajas sobre Singly Linked List:
+ *  - Navegación bidireccional → acceso desde tail más rápido (O(n/2) en get() optimizado).
+ *  - Pop() y shift() → O(1).
+ *  - Insert/delete en cualquier posición → O(1) si tienes el nodo (solo enlaces prev/next).
+ *  - Mejor para queues o deques.
+ * 
+ * Desventajas:
+ *  - Más uso de memoria (puntero 'prev' por nodo).
+ *  - Mantenimiento más complejo (actualizar prev/next en cada operación).
+ *  - Acceso por índice → O(n) (mejor que Singly con optimización bidireccional).
+ * 
+ * Complejidad (Doubly Linked List con head + tail):
+ * ┌─────────────────────┬──────────┐
+ * │ Operación           │ Big O    │
+ * ├─────────────────────┼──────────┤
+ * │ push()     (final)  │ O(1)     │
+ * │ pop()      (final)  │ O(1)     │
+ * │ unshift()  (inicio) │ O(1)     │
+ * │ shift()    (inicio) │ O(1)     │
+ * │ get(index)          │ O(n/2)   │  ← optimizado (empieza desde head o tail)
+ * │ insert/delete medio │ O(n)     │  ← O(1) si tienes el nodo, O(n) para buscarlo
+ * └─────────────────────┴──────────┘
+ * 
+ * Estructura de un nodo:
+ * { value: any, next: Node | null, prev: Node | null }
+ * 
+ * head → primer nodo (su .prev = null)
+ * tail → último nodo (su .next = null)
+ */
 
 class Node{
     constructor(value){
@@ -163,7 +197,7 @@ class DoublyLinkedList{
     }
 
     isPalindrome(){
-        if(!this.head) return false;
+        if(!this.head) return true;
         if(this.length === 1) return true;
 
         let times = Math.floor(this.length/2);
@@ -302,12 +336,13 @@ class DoublyLinkedList{
                 second = first.next;
             }
         }
-        this.head = dummy.next;
+        this.head = pre.next;
         this.head.prev = null;
         return this;
     }
 
     print(){
+        if(!this.head || !this.tail) return "DoublyLinkedList invalida";
         let datos = `head: ${this.head.value} \ntail: ${this.tail.value} \nlength: ${this.length}`;
         let lista = ``;
         let nodo = new Node(0);
