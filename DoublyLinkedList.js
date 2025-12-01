@@ -342,16 +342,15 @@ class DoublyLinkedList{
     }
 
     print(){
-        if(!this.head || !this.tail) return "DoublyLinkedList invalida";
+        if (!this.head || !this.tail) return "DoublyLinkedList invalida";
         let datos = `head: ${this.head.value} \ntail: ${this.tail.value} \nlength: ${this.length}`;
-        let lista = ``;
-        let nodo = new Node(0);
-        nodo.next = this.head;
-        for (let index = 0; index < this.length; index++) {
-            lista += `nodo ${index + 1}: ${nodo.next.value}\n`;
-            nodo = nodo.next;
+        let lista = '';
+        let current = this.head;
+        let index = 0;
+        while (current) {
+            lista += `nodo ${++index}: ${current.value}\n`;
+            current = current.next;
         }
-        nodo.next = null;
         return `${datos}\n\n${lista}`;
     }
 }
