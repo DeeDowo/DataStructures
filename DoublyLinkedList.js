@@ -278,9 +278,10 @@ class DoublyLinkedList{
         if(!this.head) return this;
         if(this.length === 1) return this;
 
-        let dummy = new Node();
-        dummy.next = this.head;
-        this.head.prev = dummy;
+        let pre = new Node();
+        pre.next = this.head;
+        this.head.prev = pre;
+        
         let first = this.head;
         let second = first.next;
 
@@ -319,8 +320,3 @@ class DoublyLinkedList{
         return `${datos}\n\n${lista}`;
     }
 }
-
-let nuevalista = new DoublyLinkedList(1,2,3,4,5);
-nuevalista.reverseBetween(2,4);
-
-console.log(nuevalista.print());
