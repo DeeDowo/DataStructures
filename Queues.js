@@ -1,11 +1,26 @@
-// para queues, esta estructura sigue el patrón fifo
-// es decir, el primero que entra es el primero en salir
-// por ello requiere una estructura en donde agregar elementos por un lado 
-// sea O(1) y removerlos del otro se igual O(1)
-//
-// usar un array en este caso sería ineficiente, la mejor solución 
-// es una SLL
-
+/**
+ * QUEUE – FIFO (First In, First Out)
+ *
+ * Características clave:
+ *  • El primer elemento en entrar es el primero en salir
+ *  • Operaciones principales en extremos opuestos: enqueue (final) - dequeue (inicio)
+ *
+ * Complejidad con Singly Linked List:
+ * ┌─────────────┬────────┬────────────────────────────────────────┐
+ * │ Operación   │ Big O  │                  Notas                 │
+ * ├─────────────┼────────┼────────────────────────────────────────┤
+ * │ enqueue()   │ O(1)   │ gracias al puntero tail                │
+ * │ dequeue()   │ O(1)   │ solo movemos el puntero first          │
+ * │ peek()      │ O(1)   │ acceso directo al primer elemento      │
+ * │ isEmpty()   │ O(1)   │                                        │
+ * │ size()      │ O(1)   │ contador mantenido                     │
+ * └─────────────┴────────┴────────────────────────────────────────┘
+ *
+ * Comparativa de implementaciones más comunes:
+ *
+ * -. Array + shift() / unshift()
+ *    → dequeue o enqueue al inicio → O(n) 
+ */
 
 class Node{
     constructor(value){
@@ -70,6 +85,10 @@ class Queue{
 
     isEmpty(){
         return !this.length;
+    }
+
+    size(){
+        return this.length;
     }
 }
 
