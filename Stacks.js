@@ -114,3 +114,60 @@ class Stack {
         return this.data.length;
     }
 }
+
+// Ejercicios con Stackc 
+
+// Ejercicio 1:
+function sortStack(value) {
+
+  let tempStack = new Stack();
+
+  while (!value.isEmpty()) {
+    let temp = value.pop();
+
+    if (tempStack.isEmpty()) {
+      tempStack.push(temp);
+    } else {
+      while (tempStack.peek() > temp && tempStack.peek() !== undefined) {
+        value.push(tempStack.pop())
+      }
+      tempStack.push(temp);
+    }
+  }
+
+  while (!tempStack.isEmpty()) {
+    value.push(tempStack.pop());
+  }
+
+  return value;
+}
+
+// Ejercicio 2:
+function reverseString(string) {
+  let stringReversed = "";
+  let stack = new Stack();
+
+  for (const l of string) {
+    stack.push(l);
+  }
+  for (let i = 0; i < string.length; i++) {
+    stringReversed += stack.pop();
+  }
+
+  return stringReversed;
+}
+
+// Ejercicio 3:
+function isBalancedParentheses(string) {
+  let stack = new Stack();
+  for (const l of string) {
+    if (l === "(") {
+      stack.push(l)
+    } else {
+      if (stack.isEmpty()) return false;
+      stack.pop();
+    }
+  }
+
+  return stack.isEmpty();
+}
