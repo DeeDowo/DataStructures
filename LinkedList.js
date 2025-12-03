@@ -262,13 +262,11 @@ class LinkedList{
        let current = this.head;
 
        while(current && current.next){
-           let runner = current; // ambos punteros al primer nodo
+           let runner = current; 
 
-           while(runner.next){ // se ejecuta mientras exista un nodo siguiente
-               if(current.value === runner.next.value) { // si el valor actuarl es igual al siguiente
-                   runner.next = runner.next.next; // runner aquí sigue apuntando a head, solo cambia next para eliminar el nodo repetido
-                    // y como se eliminó un nodo, runner no se mueve, y seguimos con el while mientras hayan nodos para comparar
-                    // entonces no veo como esto segun rompe la logica o se salta elementos
+           while(runner.next){ 
+               if(current.value === runner.next.value) {
+                   runner.next = runner.next.next; 
                    this.length--;
                }else{
                    runner = runner.next;
