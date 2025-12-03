@@ -2,40 +2,60 @@
  * HASH TABLE (Mapa Hash / Diccionario)
  *
  * Concepto clave:
- *  → Almacena pares clave-valor permitiendo acceso, inserción y eliminación en O(1) promedio
- *  → Usa una función hash para convertir la clave en un índice del array subyacente
+ * → Estructura clave → valor con acceso promedio O(1)
+ * → Función hash convierte cualquier clave en un índice
  *
- * Función hash ideal:
- *  • Determinista     → misma clave → siempre mismo hash
- *  • Uniforme         → distribuye las claves de forma pareja
- *  • Rápida           → O(1) o O(longitud clave)
+ * Colisiones → inevitables (principio del palomar)
  *
- * Colisiones (inevitables por el principio del palomar):
- * Dos estrategias principales:
+ * DOS ESTRATEGIAS PRINCIPALES PARA RESOLVER COLISIONES:
  *
- * 1. Separate Chaining (encadenamiento separado)
- *    → En cada slot del array guardamos una lista (array o linked list)
- *    → Peor caso: O(n) si todas las claves colisionan
+ * ┌─────────────────────────────────────┬────────────────────────────────────────────────────┬────────────────────────────────────────────────────┐
+ * │ Estrategia                          │ Ventajas                                           │ Desventajas                                        │
+ * ├─────────────────────────────────────┼────────────────────────────────────────────────────┼────────────────────────────────────────────────────┤
+ * │ 1. SEPARATE CHAINING                │ • No sufre clustering                              │ • Más uso de memoria (arrays / nodos)              │
+ * │ (Encadenamiento separado)           │ • Funciona bien incluso con load factor > 1        │ • Peor localidad de caché                          │
+ * │                                     │ • Borrado muy fácil                                │                                                    │
+ * ├─────────────────────────────────────┼────────────────────────────────────────────────────┼────────────────────────────────────────────────────┤
+ * │ 2. OPEN ADDRESSING                  │ • Mejor uso de caché (todo contiguo)               │ • Primary Clustering → cadenas largas              │
+ * │ (Direccionamiento abierto)          │ • Menos overhead de memoria                        │ • Degrada fuerte al pasar ~0.7 de load factor      │
+ * │                                     │ • Más rápido cuando hay buen hash                  │ • Borrado complicado (necesita tombstones)         │
+ * └─────────────────────────────────────┴────────────────────────────────────────────────────┴────────────────────────────────────────────────────┘
+ * 
+ * Load Factor (factor de carga) = elementos / tamaño del array
+ *   • Separate Chaining → funciona bien hasta > 1.0
+ *   • Open Addressing → empieza a degradarse en > 0.7
  *
- * 2. Open Addressing (direccionamiento abierto)
- *    → Al colisionar, buscamos el siguiente slot libre
- *    → Variantes: Linear Probing, Quadratic Probing, Double Hashing
+ * Complejidad promedio (buena distribución):
+ * ┌────────────┬────────┬────────────────────────────────────┐
+ * │ Operación  │ Big O  │               Notas                │
+ * ├────────────┼────────┼────────────────────────────────────┤
+ * │ set/get/has│ O(1)   │ promedio con buena función hash    │
+ * │ delete()   │ O(1)   │ más fácil con separate chaining    │
+ * │ keys/values│ O(n)   │ debe recorrer toda la tabla        │
+ * └────────────┴────────┴────────────────────────────────────┘
  *
- * Complejidad promedio (con buena función hash):
- * ┌──────────┬─────────────┐
- * │ Operación│ Tiempo      │
- * ├──────────┼─────────────┤
- * │ set()    │ O(1)        │
- * │ get()    │ O(1)        │
- * │ delete() │ O(1)        │
- * │ keys()   │ O(n)        │
- * └──────────┴─────────────┘
+ * HashTable vs HashMap
+ *   → Son en esencia el mismo concepto
  *
- * En JavaScript:
- *  • Object y Map son hash tables internas
- *  • Map mantiene orden de inserción y permite cualquier tipo como clave
- *  • Object convierte claves a string y tiene problemas heredados
+ * Implementaciones nativas en JavaScript:
+ * ┌────────────┬────────────────────┬────────────────────┬────────────────────┐
+ * │            │ Object             │ Map                │ Implementación P.  │
+ * ├────────────┼────────────────────┼────────────────────┼────────────────────┤
+ * │ Claves     │ string / Symbol    │ cualquier valor    │ depende            │
+ * │ Orden      │ sí (ES2015+)       │ sí (inserción)     │ depende            │
+ * │ null clave │ no                 │ sí                 │ depende            │
+ * │ Métodos    │ pocos              │ ricos              │ depende            │
+ * │ Uso actual │ legado/simple      │ recomendado        │ depende            │
+ * └────────────┴────────────────────┴────────────────────┴────────────────────┘
+ *
+ * Thread-safety en JavaScript:
+ *   → JS es single-threaded (event loop)
+ *   → NO hay concurrencia real → NO necesitas sincronización
+ *   → Object, Map y cualquier HashTable que hagas son seguros por diseño
+ *
  */
+
+// Implementación con Array  
 
 class HashTable {
   constructor(size = 53) {
@@ -56,20 +76,21 @@ class HashTable {
 
   set(key, value) {
     let index = this._hash(key);
-    let arreglo = [key, value];
 
     if (!this.dataMap[index]) {
       this.dataMap[index] = [];
+      this.dataMap[index].push([key, value]);
+      return this;
     }
 
-    for (let index = 0; index < array.length; index++) {
-        const element = array[index];
-        
+    for (const subarray of this.dataMap) {
+        if(subarray[0] === key) {
+            subarray[1] = key;
+            return this;
+        }
     }
 
-    this.dataMap[index].push(arreglo);
-
-
+    this.dataMap[index].push([key, value]);
     return this;
   }
 
@@ -84,64 +105,76 @@ class HashTable {
     return undefined;
   }
 
+ delete(key) {
+    const index = this._hash(key);
+    const bucket = this.table[index];
+    if (!bucket) return undefined;
+
+    for (let i = 0; i < bucket.length; i++) {
+      if (bucket[i][0] === key) {
+        const deleted = bucket[i][1];
+        bucket.splice(i, 1);
+        return deleted;
+      }
+    }
+    return undefined;
+  }
+
   keys() {
-    let keys = [];
-    for (let i = 0; i < this.dataMap.length; i++) {
-      if (this.dataMap[i]) {
-        for (let y = 0; y < this.dataMap[i].length; y++) {
-          keys.push(this.dataMap[i][y][0]);
+    const result = [];
+    for (const bucket of this.table) {
+      if (bucket) {
+        for (const [key] of bucket) {
+          result.push(key);
         }
       }
     }
+    return result;
+  }
 
-    return keys;
+  values() {
+    const result = [];
+    for (const bucket of this.table) {
+      if (bucket) {
+        for (const [, value] of bucket) {
+          result.push(value);
+        }
+      }
+    }
+    return result;
   }
 }
+// Ejercicios
 
-let hash = new HashTable(10);
-hash.set("dowo", 33);
-hash.set("dowoo", 66)
-
-hash.set("dowooo", 66)
-hash.set("dowoooo", 66)
-hash.set("dowooooo", 66)
-hash.set("dowoooooo", 66)
-console.log(hash.keys());
-
-// ejercicio encontar elementos iguales Array
-
-function elementosEnComun(array1, array2) {
-  let obj = {};
+// Ejercicio 1:
+function commonElements(array1, array2) {
+  let map = new Map();
   for (let key of array1) {
-    obj[key] = true;
+    map.set(key, true);
   }
   for (let key of array2) {
-    if (obj[key]) return true;
+    if (map.get(key)) return true;
   }
   return false;
 }
 
+// Ejercicio 2:
 function findDuplicates(array1) {
-  let hash = {}
+  let map = new Map();
   let result = [];
 
   for (let item of array1) {
-    if (hash[item]) {
+    if (map.has(item)) {
       result.push(item);
       continue;
     }
-    hash[item] = true;
+    map.set(item, true);
   }
 
   return result;
 }
 
-let array1 = [1, 2, 1, 1, 3, 4, 5, 6, 7, 1, 2, 3, 4];
-let array2 = [4, 5, 6];
-
-console.log(elementosEnComun(array1, array2));
-console.log(findDuplicates(array1));
-
+// Ejercicio 3:
 function firstNonRepeatingChar(string) {
   let obj = {};
   let firstChar = null;
@@ -160,11 +193,3 @@ function firstNonRepeatingChar(string) {
 
   return firstChar;
 }
-
-let string = "dowwo"
-let string2 = "ddooww"
-
-console.log(firstNonRepeatingChar(string))
-console.log(firstNonRepeatingChar(string2))
-
-console.log(+"c");
